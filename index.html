@@ -1,343 +1,24 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Page Replacement Algorithm Solver</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif'],mono:['JetBrains Mono','Fira Mono','monospace']}}}}</script>
-
-<style>
-*,*::before,*::after{box-sizing:border-box;}
-body{font-family:'Inter',system-ui,sans-serif;transition:background .3s,color .3s;}
-
-/* ══ THEME TOKENS ══ */
-:root{
-  --bg-page:#020818;
-  --bg-card:rgba(8,15,36,.88);
-  --bg-input:#04091a;
-  --bg-table-head:#020c1e;
-  --bg-table-row:#050e22;
-  --bg-col-lbl:#04091a;
-  --bg-row-status:#03070f;
-  --border-card:rgba(255,255,255,.06);
-  --border-table:rgba(30,58,138,.3);
-  --border-input:rgba(59,130,246,.15);
-  --text-base:#cbd5e1;
-  --text-muted:#64748b;
-  --text-label:#334155;
-  --text-eyebrow:#334155;
-  --text-empty:#1e3050;
-  --text-cell:#94a3b8;
-  --hero-bg1:rgba(29,78,216,.12);
-  --hero-bg2:rgba(37,99,235,.10);
-  --hero-card-bg:rgba(10,22,56,.6);
-  --dev-card-bg:rgba(10,22,56,.6);
-  --dev-card-border:rgba(59,130,246,.15);
-  --shadow-card:0 0 0 1px rgba(59,130,246,.08),0 8px 40px rgba(0,0,0,.6);
-  --grid-line:rgba(30,64,175,.04);
-}
-[data-theme="light"]{
-  --bg-page:#f0f4ff;
-  --bg-card:rgba(255,255,255,.95);
-  --bg-input:#fff;
-  --bg-table-head:#e8eeff;
-  --bg-table-row:#f5f7ff;
-  --bg-col-lbl:#eef1ff;
-  --bg-row-status:#f8f9ff;
-  --border-card:rgba(59,130,246,.15);
-  --border-table:rgba(59,130,246,.18);
-  --border-input:rgba(59,130,246,.3);
-  --text-base:#1e293b;
-  --text-muted:#475569;
-  --text-label:#64748b;
-  --text-eyebrow:#6b7280;
-  --text-empty:#94a3b8;
-  --text-cell:#334155;
-  --hero-bg1:rgba(29,78,216,.06);
-  --hero-bg2:rgba(37,99,235,.04);
-  --hero-card-bg:rgba(255,255,255,.8);
-  --dev-card-bg:rgba(239,246,255,.8);
-  --dev-card-border:rgba(59,130,246,.25);
-  --shadow-card:0 0 0 1px rgba(59,130,246,.12),0 8px 32px rgba(59,130,246,.08);
-  --grid-line:rgba(59,130,246,.04);
-}
-
-/* ══ PAGE BG ══ */
-body{background-color:var(--bg-page);color:var(--text-base);}
-.page-bg{
-  min-height:100vh;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(29,78,216,.18) 0%, transparent 65%),
-    linear-gradient(var(--grid-line) 1px,transparent 1px),
-    linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
-  background-size:100% 100%,40px 40px,40px 40px;
-}
-
-/* ══ THEME TOGGLE ══ */
-.theme-toggle{
-  position:fixed;top:18px;right:18px;z-index:100;
-  width:42px;height:42px;border-radius:12px;
-  border:1px solid var(--border-card);
-  background:var(--bg-card);
-  backdrop-filter:blur(12px);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:1.1rem;
-  box-shadow:var(--shadow-card);
-  transition:all .2s;
-}
-.theme-toggle:hover{border-color:rgba(59,130,246,.4);transform:scale(1.08);}
-
-/* ══ HERO ══ */
-.hero-section{position:relative;overflow:hidden;padding:64px 24px 56px;text-align:center;}
-.hero-section::before{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse 60% 60% at 20% 50%,var(--hero-bg1) 0%,transparent 70%),
-             radial-gradient(ellipse 60% 60% at 80% 50%,var(--hero-bg2) 0%,transparent 70%);
-}
-.hero-badge{
-  display:inline-flex;align-items:center;gap:8px;
-  font-size:.63rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
-  color:#93c5fd;background:rgba(37,99,235,.12);
-  border:1px solid rgba(59,130,246,.25);
-  padding:6px 16px;border-radius:999px;margin-bottom:24px;
-  font-family:'JetBrains Mono',monospace;
-}
-[data-theme="light"] .hero-badge{color:#1d4ed8;background:rgba(37,99,235,.07);border-color:rgba(59,130,246,.2);}
-.hero-logo{
-  width:76px;height:76px;border-radius:18px;
-  border:2px solid rgba(59,130,246,.35);object-fit:cover;
-  box-shadow:0 0 0 6px rgba(37,99,235,.08),0 8px 32px rgba(0,0,0,.4);
-  margin:0 auto 18px;display:block;background:#0e1e3d;
-}
-.hero-logo-fallback{
-  width:76px;height:76px;border-radius:18px;
-  border:2px solid rgba(59,130,246,.35);
-  background:linear-gradient(135deg,#1e3a8a,#1d4ed8);
-  box-shadow:0 0 0 6px rgba(37,99,235,.08),0 8px 32px rgba(0,0,0,.4);
-  margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:1.9rem;
-}
-.hero-title{
-  font-size:clamp(2rem,6vw,3.5rem);font-weight:900;
-  line-height:1.08;letter-spacing:-.03em;color:#fff;margin-bottom:10px;
-}
-[data-theme="light"] .hero-title{color:#0f172a;}
-.hero-title span{
-  background:linear-gradient(135deg,#60a5fa 0%,#3b82f6 40%,#93c5fd 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.hero-sub{color:var(--text-muted);font-size:.9rem;max-width:480px;margin:0 auto 36px;line-height:1.6;}
-
-/* ══ HERO ALGO CARDS ══ */
-.hero-algo-wrap{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
-.hero-algo-btn{
-  position:relative;cursor:pointer;padding:16px 26px;border-radius:14px;
-  border:1.5px solid rgba(59,130,246,.2);background:var(--hero-card-bg);
-  backdrop-filter:blur(8px);transition:all .22s ease;text-align:left;min-width:200px;
-}
-.hero-algo-btn:hover{border-color:rgba(59,130,246,.5);background:rgba(29,78,216,.12);transform:translateY(-2px);box-shadow:0 8px 24px rgba(29,78,216,.2);}
-.hero-algo-btn.active{border-color:#3b82f6;background:rgba(29,78,216,.18);box-shadow:0 0 0 3px rgba(59,130,246,.12),0 8px 28px rgba(29,78,216,.25);}
-[data-theme="light"] .hero-algo-btn{background:rgba(255,255,255,.9);}
-[data-theme="light"] .hero-algo-btn.active{background:rgba(219,234,254,.6);}
-.hero-algo-btn.active::before{content:'';position:absolute;inset:-1.5px;border-radius:14px;background:linear-gradient(135deg,rgba(59,130,246,.5),rgba(147,197,253,.15));z-index:-1;opacity:.5;}
-.algo-tag{font-family:'JetBrains Mono',monospace;font-size:.57rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:5px;background:rgba(59,130,246,.18);color:#93c5fd;display:inline-block;margin-bottom:7px;}
-.hero-algo-btn.active .algo-tag{background:rgba(59,130,246,.35);color:#fff;}
-[data-theme="light"] .algo-tag{color:#1d4ed8;}
-.algo-name{font-weight:800;font-size:.93rem;margin-bottom:3px;}
-[data-theme="dark"]  .algo-name{color:#fff;}
-[data-theme="light"] .algo-name{color:#0f172a;}
-.algo-desc{font-size:.69rem;color:var(--text-muted);line-height:1.4;}
-.hero-algo-btn.active .algo-desc{color:#93c5fd;opacity:.85;}
-[data-theme="light"] .hero-algo-btn.active .algo-desc{color:#1d4ed8;}
-.check-icon{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;background:rgba(59,130,246,.12);border:1.5px solid rgba(59,130,246,.22);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:transparent;transition:all .2s;}
-.hero-algo-btn.active .check-icon{background:#3b82f6;border-color:#3b82f6;color:#fff;}
-
-/* ══ DIVIDER ══ */
-.section-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.2) 30%,rgba(59,130,246,.2) 70%,transparent);}
-
-/* ══ CARDS ══ */
-.card{border-radius:20px;border:1px solid var(--border-card);background:var(--bg-card);backdrop-filter:blur(10px);box-shadow:var(--shadow-card);}
-
-/* ══ SCROLLBAR ══ */
-.tbl-scroll::-webkit-scrollbar{height:4px;}
-.tbl-scroll::-webkit-scrollbar-track{background:var(--bg-input);}
-.tbl-scroll::-webkit-scrollbar-thumb{background:#1e3a8a;border-radius:4px;}
-
-/* ══ ALGO PILLS ══ */
-.algo-radio{display:none;}
-.algo-pill{transition:all .18s ease;cursor:pointer;}
-.algo-pill:hover{border-color:rgba(59,130,246,.5);color:var(--text-base);}
-.algo-radio:checked + .algo-pill{background:rgba(59,130,246,.15);border-color:#3b82f6;color:var(--text-base);}
-.algo-radio:checked + .algo-pill .pill-badge{background:rgba(59,130,246,.35);color:#fff;}
-
-/* ══ INPUT ══ */
-.field-input{
-  background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-base);
-  border-radius:10px;padding:.65rem 1rem;
-  font-family:'JetBrains Mono',monospace;font-size:.88rem;
-  outline:none;width:100%;transition:border-color .2s,box-shadow .2s;
-}
-.field-input::placeholder{color:var(--text-empty);}
-.field-input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.18);}
-
-/* ══ EYEBROW ══ */
-.section-eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
-.eyebrow-icon{width:30px;height:30px;border-radius:9px;background:rgba(37,99,235,.1);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;color:#60a5fa;font-size:.85rem;flex-shrink:0;}
-.eyebrow-text{font-size:.6rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--text-eyebrow);font-family:'JetBrains Mono',monospace;}
-
-/* ══ GLOWS ══ */
-.glow-green{text-shadow:0 0 10px rgba(16,185,129,.6);}
-.glow-red  {text-shadow:0 0 10px rgba(239,68,68,.6);}
-.dot-pulse{animation:dpulse 2.2s infinite;}
-@keyframes dpulse{0%{box-shadow:0 0 0 0 currentColor;}60%{box-shadow:0 0 0 5px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
-
-/* ══ TABLE ══ */
-.data-table{border-collapse:collapse;min-width:520px;width:100%;}
-.data-table th,.data-table td{
-  padding:.5rem .75rem;text-align:center;
-  border-right:1px solid var(--border-table);border-bottom:1px solid var(--border-table);
-  white-space:nowrap;font-family:'JetBrains Mono',monospace;font-size:.78rem;
-}
-.data-table th:last-child,.data-table td:last-child{border-right:none;}
-.data-table tr:last-child td{border-bottom:none;}
-.col-lbl{
-  text-align:left;min-width:120px;position:sticky;left:0;z-index:2;
-  background:var(--bg-col-lbl);font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--text-label);border-right:1px solid var(--border-table)!important;padding-left:.9rem;
-}
-.row-status td{background:var(--bg-row-status)!important;}
-.bar-fill{transition:width .7s ease;}
-
-/* ══ DEV SECTION ══ */
-.dev-section{margin-top:56px;padding:40px 24px;border-top:1px solid rgba(59,130,246,.1);text-align:center;}
-.dev-title{font-size:.6rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--text-label);font-family:'JetBrains Mono',monospace;margin-bottom:6px;}
-.dev-heading{font-size:1.1rem;font-weight:700;margin-bottom:4px;}
-[data-theme="dark"]  .dev-heading{color:#fff;}
-[data-theme="light"] .dev-heading{color:#0f172a;}
-.instructor-line{font-size:.8rem;color:#3b82f6;font-weight:600;margin-bottom:26px;font-family:'JetBrains Mono',monospace;}
-.dev-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:640px;margin:0 auto;}
-.dev-card{background:var(--dev-card-bg);border:1px solid var(--dev-card-border);border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:10px;transition:all .2s;}
-.dev-card:hover{border-color:rgba(59,130,246,.4);background:rgba(29,78,216,.1);transform:translateY(-2px);}
-.dev-num{width:28px;height:28px;border-radius:8px;background:rgba(37,99,235,.15);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;color:#60a5fa;flex-shrink:0;}
-.dev-name{font-size:.82rem;font-weight:600;color:var(--text-base);text-align:left;}
-.footer-line{margin-top:20px;font-size:.68rem;color:var(--text-label);font-family:'JetBrains Mono',monospace;}
-
-/* ══ BUTTONS ══ */
-.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:11px;background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;font-size:.85rem;font-weight:700;letter-spacing:.03em;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(29,78,216,.35);transition:all .2s;}
-.btn-primary:hover{background:linear-gradient(135deg,#2563eb,#3b82f6);transform:translateY(-1px);box-shadow:0 8px 28px rgba(29,78,216,.45);}
-.btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:11px;background:transparent;border:1px solid var(--border-input);color:var(--text-muted);font-size:.85rem;font-weight:700;letter-spacing:.03em;cursor:pointer;transition:all .2s;}
-.btn-secondary:hover{border-color:rgba(59,130,246,.5);color:var(--text-base);}
-.btn-gen{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:11px;background:rgba(37,99,235,.1);border:1px solid rgba(59,130,246,.25);color:#60a5fa;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'JetBrains Mono',monospace;}
-.btn-gen:hover{background:rgba(37,99,235,.2);border-color:rgba(59,130,246,.5);transform:translateY(-1px);}
-
-/* ══ CHATBOT ══ */
-.chat-fab{
-  position:fixed;bottom:28px;right:24px;z-index:200;
-  width:54px;height:54px;border-radius:50%;
-  background:linear-gradient(135deg,#1d4ed8,#3b82f6);
-  box-shadow:0 4px 24px rgba(29,78,216,.5);
-  border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.3rem;transition:all .22s;
-}
-.chat-fab:hover{transform:scale(1.1);box-shadow:0 8px 32px rgba(29,78,216,.65);}
-.chat-fab .notif{
-  position:absolute;top:-2px;right:-2px;
-  width:14px;height:14px;border-radius:50%;
-  background:#ef4444;border:2px solid var(--bg-page);
-  font-size:.5rem;font-weight:800;color:#fff;
-  display:flex;align-items:center;justify-content:center;
-}
-
-.chat-panel{
-  position:fixed;bottom:92px;right:24px;z-index:199;
-  width:340px;max-height:520px;
-  border-radius:20px;
-  border:1px solid var(--border-card);
-  background:var(--bg-card);
-  backdrop-filter:blur(16px);
-  box-shadow:0 20px 60px rgba(0,0,0,.5);
-  display:flex;flex-direction:column;
-  overflow:hidden;
-  transition:all .25s cubic-bezier(.34,1.56,.64,1);
-  transform-origin:bottom right;
-}
-.chat-panel.hidden{transform:scale(.85);opacity:0;pointer-events:none;}
-
-.chat-header{
-  padding:14px 16px;
-  background:linear-gradient(135deg,rgba(29,78,216,.35),rgba(37,99,235,.2));
-  border-bottom:1px solid var(--border-card);
-  display:flex;align-items:center;gap:10px;
-}
-.chat-avatar{
-  width:34px;height:34px;border-radius:50%;
-  background:linear-gradient(135deg,#1d4ed8,#60a5fa);
-  display:flex;align-items:center;justify-content:center;font-size:1rem;
-  border:2px solid rgba(255,255,255,.15);flex-shrink:0;
-}
-.chat-header-info .name{font-weight:700;font-size:.88rem;color:#fff;}
-[data-theme="light"] .chat-header-info .name{color:#0f172a;}
-.chat-header-info .status{font-size:.65rem;color:#34d399;display:flex;align-items:center;gap:4px;}
-.chat-close{margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:4px;border-radius:6px;transition:color .2s;}
-.chat-close:hover{color:var(--text-base);}
-
-.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0;}
-.chat-msgs::-webkit-scrollbar{width:3px;}
-.chat-msgs::-webkit-scrollbar-thumb{background:#1e3a8a;border-radius:3px;}
-
-.msg{display:flex;gap:8px;align-items:flex-end;animation:msgIn .2s ease;}
-@keyframes msgIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
-.msg.user{flex-direction:row-reverse;}
-.msg-bubble{
-  max-width:78%;padding:9px 13px;border-radius:14px;
-  font-size:.78rem;line-height:1.5;
-}
-.msg.bot  .msg-bubble{background:rgba(37,99,235,.12);border:1px solid rgba(59,130,246,.15);color:var(--text-base);border-bottom-left-radius:4px;}
-.msg.user .msg-bubble{background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;border-bottom-right-radius:4px;}
-.msg-avatar{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;}
-.msg.bot  .msg-avatar{background:linear-gradient(135deg,#1d4ed8,#3b82f6);}
-.msg.user .msg-avatar{background:rgba(59,130,246,.25);color:#60a5fa;}
-
-.chat-typing{display:flex;gap:4px;align-items:center;padding:2px 4px;}
-.typing-dot{width:6px;height:6px;border-radius:50%;background:#3b82f6;animation:tdot 1.2s infinite;}
-.typing-dot:nth-child(2){animation-delay:.2s;}
-.typing-dot:nth-child(3){animation-delay:.4s;}
-@keyframes tdot{0%,60%,100%{opacity:.25;transform:scale(.8);}30%{opacity:1;transform:scale(1);}}
-
-.chat-suggestions{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 8px;}
-.chip{
-  font-size:.65rem;font-weight:600;padding:4px 10px;border-radius:20px;cursor:pointer;
-  border:1px solid rgba(59,130,246,.25);color:#60a5fa;background:rgba(37,99,235,.07);
-  transition:all .15s;white-space:nowrap;
-}
-.chip:hover{background:rgba(37,99,235,.2);border-color:rgba(59,130,246,.5);}
-
-.chat-input-row{
-  display:flex;gap:8px;padding:12px 14px;
-  border-top:1px solid var(--border-card);
-}
-.chat-text{
-  flex:1;background:var(--bg-input);border:1px solid var(--border-input);
-  color:var(--text-base);border-radius:10px;padding:8px 12px;
-  font-size:.8rem;outline:none;resize:none;
-  font-family:'Inter',sans-serif;line-height:1.4;max-height:80px;
-  transition:border-color .2s;
-}
-.chat-text:focus{border-color:#3b82f6;}
-.chat-text::placeholder{color:var(--text-empty);}
-.chat-send{
-  width:36px;height:36px;border-radius:10px;border:none;cursor:pointer;
-  background:linear-gradient(135deg,#1d4ed8,#2563eb);
-  color:#fff;font-size:.9rem;display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:all .2s;align-self:flex-end;
-}
-.chat-send:hover{background:linear-gradient(135deg,#2563eb,#3b82f6);transform:scale(1.07);}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Replacement Algorithm Solver</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body class="page-bg pb-16">
 
 <!-- ══ THEME TOGGLE ══ -->
@@ -356,8 +37,14 @@ body{background-color:var(--bg-page);color:var(--text-base);}
     OS Memory Management · Lab Activity
   </div>
 
-  <h1 class="hero-title">Page Replacement<br><span>Algorithm Solver</span></h1>
-  <p class="hero-sub">Simulate and visualize FIFO &amp; LRU page replacement policies with step-by-step schedule tracking and queue state analysis.</p>
+  <h1 class="hero-title">
+    Page Replacement<br><span>Algorithm Solver</span>
+  </h1>
+  <p class="hero-sub">
+    Simulate and visualize FIFO &amp; LRU page replacement policies with
+    step-by-step schedule tracking and queue state analysis.
+    Supports both numeric and letter-based reference strings.
+  </p>
 
   <div class="hero-algo-wrap">
     <div class="hero-algo-btn active" id="hero-fifo" onclick="selectHeroAlgo('FIFO')">
@@ -378,11 +65,11 @@ body{background-color:var(--bg-page);color:var(--text-base);}
 <div class="section-divider"></div>
 
 <!-- ══════════════════════════════════
-     MAIN
+     MAIN CONTENT
 ══════════════════════════════════ -->
 <div class="max-w-5xl mx-auto px-4 pt-8">
 
-  <!-- CONFIG -->
+  <!-- ── CONFIGURATION ── -->
   <div class="card mb-5 p-6 sm:p-8">
     <div class="section-eyebrow">
       <div class="eyebrow-icon">⚙</div>
@@ -391,22 +78,30 @@ body{background-color:var(--bg-page);color:var(--text-base);}
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-x-6">
 
+      <!-- Algorithm selector -->
       <div class="sm:col-span-2">
-        <div class="text-[.65rem] font-bold uppercase tracking-widest mb-2.5" style="color:var(--text-label)">Selected Algorithm</div>
+        <div class="text-[.65rem] font-bold uppercase tracking-widest mb-2.5" style="color:var(--text-label)">
+          Selected Algorithm
+        </div>
         <div class="grid grid-cols-2 gap-3">
           <input class="algo-radio" type="radio" name="algo" id="r-fifo" value="FIFO" checked />
-          <label for="r-fifo" class="algo-pill flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl font-semibold text-sm" style="background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-muted);">
+          <label for="r-fifo"
+            class="algo-pill flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl font-semibold text-sm"
+            style="background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-muted);">
             <span class="pill-badge font-mono text-[.6rem] font-bold tracking-wider bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">FIFO</span>
             First-In, First-Out
           </label>
           <input class="algo-radio" type="radio" name="algo" id="r-lru" value="LRU" />
-          <label for="r-lru" class="algo-pill flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl font-semibold text-sm" style="background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-muted);">
+          <label for="r-lru"
+            class="algo-pill flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl font-semibold text-sm"
+            style="background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-muted);">
             <span class="pill-badge font-mono text-[.6rem] font-bold tracking-wider bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">LRU</span>
             Least Recently Used
           </label>
         </div>
       </div>
 
+      <!-- Frames -->
       <div>
         <div class="text-[.65rem] font-bold uppercase tracking-widest mb-2.5" style="color:var(--text-label)">
           Number of Frames <span class="text-blue-400">*</span>
@@ -414,30 +109,192 @@ body{background-color:var(--bg-page);color:var(--text-base);}
         <input class="field-input" type="number" id="frames" value="3" min="1" max="20" />
       </div>
 
+      <!-- Reference String -->
       <div>
-        <div class="text-[.65rem] font-bold uppercase tracking-widest mb-2.5" style="color:var(--text-label)">
-          Reference String <span class="text-blue-400">*</span>
+        <div class="flex items-center justify-between mb-2.5">
+          <div class="text-[.65rem] font-bold uppercase tracking-widest" style="color:var(--text-label)">
+            Reference String <span class="text-blue-400">*</span>
+          </div>
+          <span class="mode-badge mode-none" id="modeBadge">Enter a reference string</span>
         </div>
         <div class="flex gap-2">
-          <input class="field-input" type="text" id="refstr" placeholder="e.g.  7 0 1 2 0 3 0 4" autocomplete="off" style="flex:1;" />
-          <button class="btn-gen" onclick="autoGenerate()" title="Auto-generate random reference string">
-            🎲 Auto
-          </button>
+          <input class="field-input" type="text" id="refstr"
+            placeholder="e.g.  7 0 1 2 0 3   or   A B C A D"
+            autocomplete="off" style="flex:1;" />
+<button
+    id="autoBtn"
+    class="btn-gen"
+    onclick="toggleAutoPanel()"
+    title="Auto Generate">
+    🎲 Auto
+</button>
         </div>
-        <p class="mt-1.5 text-[.67rem]" style="color:var(--text-empty)">Spaces or commas accepted · or click 🎲 Auto to generate</p>
+        <p class="mt-1.5 text-[.67rem]" style="color:var(--text-empty)">
+          Numbers (e.g. 7 0 1 2) or Letters (e.g. A B C A) — not both · spaces or commas accepted
+        </p>
       </div>
 
-    </div>
+    </div><!-- /grid -->
 
     <div class="flex flex-wrap gap-3 mt-6">
       <button onclick="onBuild()" class="btn-primary">▶&nbsp; Build Schedule</button>
       <button onclick="onClear()"  class="btn-secondary">↺&nbsp; Clear</button>
     </div>
 
-    <div id="errMsg" class="hidden mt-4 px-4 py-2.5 rounded-xl text-red-400 text-sm font-medium border border-red-500/20" style="background:rgba(239,68,68,.06)"></div>
+    <div id="errMsg"
+      class="hidden mt-4 px-4 py-2.5 rounded-xl text-red-400 text-sm font-medium border border-red-500/20"
+      style="background:rgba(239,68,68,.06)">
+    </div>
   </div>
 
-  <!-- SCHEDULE TABLE -->
+  <!-- ==========================
+     AUTO GENERATOR PANEL
+========================== -->
+
+<div
+    id="autoPanel"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+
+    <div
+        class="w-[95%] max-w-md rounded-2xl p-6 shadow-2xl"
+        style="
+        background:var(--bg-card);
+        border:1px solid var(--border-table);
+        ">
+
+        <h2 class="text-xl font-bold mb-5">
+            🎲 Auto Generate
+        </h2>
+
+        <!-- TYPE -->
+
+        <div class="mb-5">
+
+            <div class="text-xs uppercase tracking-widest mb-2"
+                style="color:var(--text-label)">
+                Reference Type
+            </div>
+
+            <div class="flex gap-5">
+
+                <label class="flex items-center gap-2 cursor-pointer">
+
+                    <input
+                        id="gen-type-numbers"
+                        type="radio"
+                        name="genType"
+                        checked>
+
+                    Numbers
+
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer">
+
+                    <input
+                        id="gen-type-letters"
+                        type="radio"
+                        name="genType">
+
+                    Letters
+
+                </label>
+
+            </div>
+
+        </div>
+
+        <!-- COUNT -->
+
+        <div class="mb-5">
+
+            <label class="text-xs uppercase tracking-widest">
+
+                Number of References
+
+            </label>
+
+            <input
+                id="gen-count"
+                class="field-input mt-2"
+                type="number"
+                value="20"
+                min="1"
+                max="100">
+
+        </div>
+
+        <!-- NUMBER OPTIONS -->
+
+        <div
+            id="number-options"
+            class="mb-5">
+
+            <label class="text-xs uppercase tracking-widest">
+
+                Maximum Number
+
+            </label>
+
+            <input
+                id="gen-max-number"
+                class="field-input mt-2"
+                type="number"
+                value="9"
+                min="1"
+                max="999">
+
+        </div>
+
+        <!-- LETTER OPTIONS -->
+
+        <div
+            id="letter-options"
+            class="mb-5 hidden">
+
+            <label class="text-xs uppercase tracking-widest">
+
+                Number of Letters (A...)
+
+            </label>
+
+            <input
+                id="gen-letter-count"
+                class="field-input mt-2"
+                type="number"
+                value="5"
+                min="1"
+                max="26">
+
+        </div>
+
+        <!-- BUTTONS -->
+
+        <div class="flex justify-end gap-3">
+
+            <button
+                onclick="closeAutoPanel()"
+                class="btn-secondary">
+
+                Cancel
+
+            </button>
+
+            <button
+                onclick="doGenerate()"
+                class="btn-primary">
+
+                Generate
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+  <!-- ── SCHEDULE TABLE ── -->
   <div id="tableCard" class="hidden card mb-5 p-6 sm:p-8">
     <div class="section-eyebrow">
       <div class="eyebrow-icon">≡</div>
@@ -456,11 +313,14 @@ body{background-color:var(--bg-page);color:var(--text-base);}
     </div>
   </div>
 
-  <!-- QUEUE STATE -->
+  <!-- ── QUEUE STATE ── -->
   <div id="queueCard" class="hidden card mb-5 p-6 sm:p-8">
     <div class="section-eyebrow">
       <div class="eyebrow-icon">⇅</div>
-      <span class="eyebrow-text">Queue State <span id="queueSubtitle" class="ml-1" style="color:rgba(59,130,246,.5)"></span></span>
+      <span class="eyebrow-text">
+        Queue State
+        <span id="queueSubtitle" class="ml-1" style="color:rgba(59,130,246,.5)"></span>
+      </span>
     </div>
     <p class="text-[.68rem] mb-4 ml-10" id="queueDesc" style="color:var(--text-empty)"></p>
     <div class="tbl-scroll overflow-x-auto rounded-xl" style="border:1px solid var(--border-table)">
@@ -468,7 +328,7 @@ body{background-color:var(--bg-page);color:var(--text-base);}
     </div>
   </div>
 
-  <!-- SUMMARY -->
+  <!-- ── SUMMARY ── -->
   <div id="summaryCard" class="hidden card p-6 sm:p-8">
     <div class="section-eyebrow">
       <div class="eyebrow-icon">▦</div>
@@ -477,338 +337,131 @@ body{background-color:var(--bg-page);color:var(--text-base);}
     <div id="summaryGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
   </div>
 
-  <!-- DEVELOPER CREDITS -->
-  <div class="dev-section">
-    <div class="dev-title">Developed by</div>
-    <div class="dev-heading">Bachelor of Science in Information technology</div>
-    <!-- ✏️ EDIT INSTRUCTOR NAME BELOW -->
-    <div class="instructor-line">Instructor: Sir Gilbert Carnice</div>
-    <div class="dev-grid">
-      <!-- ✏️ EDIT STUDENT NAMES BELOW -->
-      <div class="dev-card"><div class="dev-num">01</div><div class="dev-name">Dewi Flores</div></div>
-      <div class="dev-card"><div class="dev-num">02</div><div class="dev-name">Wencel Lancian</div></div>
-      <div class="dev-card"><div class="dev-num">03</div><div class="dev-name">Adrian Lloyd Armohalias</div></div>
-      <div class="dev-card"><div class="dev-num">04</div><div class="dev-name">Kyle Gallenero</div></div>
-      <div class="dev-card"><div class="dev-num">05</div><div class="dev-name">Jasmin Kyle Ligan</div></div>
+<!-- DEVELOPER CREDITS -->
+<div class="dev-section">
+  <div class="dev-title">Developed by</div>
+  <div class="dev-heading">Bachelor of Science in Information Technology</div>
+
+  <div class="instructor-line">
+    Instructor: Sir Gilbert Carnice
+  </div>
+
+  <div class="dev-grid">
+
+    <div class="dev-card">
+      <div class="dev-num">01</div>
+
+      <div class="dev-name"
+           data-name="Dewi Flores"
+           data-role="Core Functionality"
+           data-img="images/dewi.jpg">
+        Dewi Flores
+
+        <div class="dev-hover">
+          <img src="Assets/logo.jpg" alt="">
+          <h4>Dewi Flores</h4>
+          <p>Core Functionality</p>
+        </div>
+      </div>
     </div>
-    <div class="footer-line">© 2025 · Page Replacement Algorithm Solver · OS Memory Management</div>
-  </div>
 
-</div><!-- /max-w -->
+        <div class="dev-card">
+      <div class="dev-num">02</div>
 
-<!-- ══════════════════════════════════
-     CHATBOT
-══════════════════════════════════ -->
-<button class="chat-fab" onclick="toggleChat()" title="Ask the Algorithm Assistant">
-  <span id="fabIcon">💬</span>
-  <span class="notif" id="chatNotif">1</span>
-</button>
+      <div class="dev-name"
+           data-name="Jasmin Kyle Ligan"
+           data-role="Core Functionality"
+           data-img="Assets/logo.jpg">
+        Jasmin Kyle Ligan
 
-<div class="chat-panel hidden" id="chatPanel">
-  <div class="chat-header">
-    <div class="chat-avatar">🤖</div>
-    <div class="chat-header-info">
-      <div class="name">Algorithm Assistant</div>
-      <div class="status"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>Online</div>
+        <div class="dev-hover">
+          <img src="Assets/logo.jpg" alt="">
+          <h4>Jasmin Kyle Ligan</h4>
+          <p>Core Functionality</p>
+        </div>
+      </div>
     </div>
-    <button class="chat-close" onclick="toggleChat()">✕</button>
+
+
+    <div class="dev-card">
+      <div class="dev-num">03</div>
+
+      <div class="dev-name"
+           data-name="Kyle Gallenero"
+           data-role="UI & Bug Fixes"
+           data-img="Assets/logo.jpg">
+        Kyle Gallenero
+
+        <div class="dev-hover">
+          <img src="Assets/logo.jpg" alt="">
+          <h4>Kyle Gallenero</h4>
+          <p>UI & Bug Fixes</p>
+        </div>
+      </div>
+    </div>
+
+        <div class="dev-card">
+      <div class="dev-num">04</div>
+
+      <div class="dev-name"
+           data-name="Adrian Lloyd Armohalias"
+           data-role="UI & Bug Fixes"
+           data-img="Assets/logo.jpg">
+        Adrian Lloyd Armohalias
+
+        <div class="dev-hover">
+          <img src="Assets/logo.jpg" alt="">
+          <h4>Adrian Lloyd Armohalias</h4>
+          <p>UI & Bug Fixes</p>
+        </div>
+      </div>
+    </div>
+
+
+        <div class="dev-card">
+      <div class="dev-num">05</div>
+
+      <div class="dev-name"
+           data-name="Wencel Lancian"
+           data-role="Project Lead"
+           data-img="Assets/Wencel.jpg">
+        Wencel Lancian
+
+        <div class="dev-hover">
+          <img src="Assets/Wencel.jpg" alt="">
+          <h4>Wencel Lancian</h4>
+          <p>Project Lead</p>
+        </div>
+      </div>
+    </div>
+
+
   </div>
 
-  <div class="chat-msgs" id="chatMsgs"></div>
-
-  <div class="chat-suggestions" id="chipWrap">
-    <span class="chip" onclick="chipSend('What is FIFO?')">What is FIFO?</span>
-    <span class="chip" onclick="chipSend('Explain LRU')">Explain LRU</span>
-    <span class="chip" onclick="chipSend('What is a page fault?')">Page fault?</span>
-    <span class="chip" onclick="chipSend('How do I use this tool?')">How to use?</span>
-    <span class="chip" onclick="chipSend('Difference between FIFO and LRU')">FIFO vs LRU</span>
-  </div>
-
-  <div class="chat-input-row">
-    <textarea class="chat-text" id="chatInput" placeholder="Ask about page replacement…" rows="1"
-      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
-    <button class="chat-send" onclick="sendChat()">➤</button>
+  <div class="footer-line">
+    © 2025 · Page Replacement Algorithm Solver · OS Memory Management
   </div>
 </div>
 
-<!-- ══════════════════════════════════
-     SCRIPTS
-══════════════════════════════════ -->
-<script>
-/* ══ THEME ══ */
-let isDark = true;
-function toggleTheme(){
-  isDark = !isDark;
-  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
-}
+<!-- FULLSCREEN MODAL -->
+<div class="img-modal" id="imgModal">
 
-/* ══ HERO ALGO SYNC ══ */
-function selectHeroAlgo(algo){
-  document.getElementById('hero-fifo').classList.toggle('active', algo==='FIFO');
-  document.getElementById('hero-lru').classList.toggle('active',  algo==='LRU');
-  document.getElementById(algo==='FIFO'?'r-fifo':'r-lru').checked = true;
-}
+    <span class="close-modal">&times;</span>
 
-/* ══ AUTO-SPACE INPUT ══ */
-document.getElementById('refstr').addEventListener('input', function(){
-  const raw    = this.value.replace(/[^\d]/g,'');
-  const spaced = raw.split('').join(' ');
-  this.value   = spaced ? spaced+' ' : '';
-  const len    = this.value.length;
-  this.setSelectionRange(len,len);
-});
+    <div class="modal-content">
 
-/* ══ AUTO-GENERATE ══ */
-function autoGenerate(){
-  const count  = Math.floor(Math.random()*8)+8;   // 8-15 references
-  const maxPg  = Math.max(parseInt(document.getElementById('frames').value)||3, 4)+3;
-  const pages  = Array.from({length:count}, ()=> Math.floor(Math.random()*maxPg));
-  const str    = pages.join(' ') + ' ';
-  document.getElementById('refstr').value = str;
-  // brief flash feedback
-  const btn = document.querySelector('.btn-gen');
-  btn.textContent = '✓ Generated!';
-  setTimeout(()=>{ btn.innerHTML='🎲 Auto'; }, 1200);
-}
+        <img id="modalImage">
 
-/* ══ ALGORITHMS ══ */
-function runFIFO(pages,n){
-  const frames=Array(n).fill(null),queue=[],steps=[];
-  for(const page of pages){
-    if(frames.includes(page)){
-      steps.push({frames:[...frames],hit:true,replaced:-1,queue:[...queue]});
-    } else {
-      let slot;
-      if(frames.includes(null)){slot=frames.indexOf(null);}
-      else{const e=queue.shift();slot=frames.indexOf(e);}
-      frames[slot]=page;queue.push(page);
-      steps.push({frames:[...frames],hit:false,replaced:slot,queue:[...queue]});
-    }
-  }
-  return steps;
-}
-function runLRU(pages,n){
-  const frames=Array(n).fill(null),stack=[],steps=[];
-  for(const page of pages){
-    if(frames.includes(page)){
-      const si=stack.indexOf(page);if(si!==-1)stack.splice(si,1);stack.push(page);
-      steps.push({frames:[...frames],hit:true,replaced:-1,queue:[...stack]});
-    } else {
-      let slot;
-      if(frames.includes(null)){slot=frames.indexOf(null);}
-      else{const e=stack.shift();slot=frames.indexOf(e);}
-      frames[slot]=page;stack.push(page);
-      steps.push({frames:[...frames],hit:false,replaced:slot,queue:[...stack]});
-    }
-  }
-  return steps;
-}
+        <h2 id="modalName"></h2>
 
-/* ══ RENDER SCHEDULE ══ */
-function renderSchedule(pages,steps){
-  const nF=steps[0].frames.length;
-  const th=isDark?'#020c1e':'#e8eeff';
-  const tr=isDark?'#050e22':'#f5f7ff';
-  let h=`<table class="data-table"><thead><tr><th class="col-lbl">REF</th>`;
-  for(let i=0;i<pages.length;i++) h+=`<th style="color:#60a5fa;background:${th}">${i+1}</th>`;
-  h+=`</tr></thead><tbody><tr><td class="col-lbl">Page</td>`;
-  for(const p of pages) h+=`<td style="background:${tr};color:${isDark?'#fff':'#0f172a'};font-weight:700;font-size:.85rem">${p}</td>`;
-  h+=`</tr>`;
-  for(let f=0;f<nF;f++){
-    h+=`<tr><td class="col-lbl">Frame ${f+1}</td>`;
-    for(let t=0;t<steps.length;t++){
-      const s=steps[t],val=s.frames[f];
-      let sty=`color:${isDark?'#1e3050':'#94a3b8'}`;
-      if(val!==null){
-        if(!s.hit&&s.replaced===f) sty='background:rgba(239,68,68,.1);color:#f87171;font-weight:700;border-top:1px solid rgba(239,68,68,.15);border-bottom:1px solid rgba(239,68,68,.15)';
-        else if(s.hit&&val===pages[t]) sty='background:rgba(16,185,129,.08);color:#34d399;font-weight:700';
-        else sty=`color:${isDark?'#94a3b8':'#334155'}`;
-      }
-      h+=`<td style="${sty}">${val===null?'—':val}</td>`;
-    }
-    h+=`</tr>`;
-  }
-  h+=`<tr class="row-status"><td class="col-lbl">Status</td>`;
-  for(const s of steps)
-    h+=s.hit
-      ?`<td class="glow-green" style="color:#10b981;font-weight:800;font-size:.65rem;letter-spacing:.1em">HIT</td>`
-      :`<td class="glow-red"   style="color:#ef4444;font-weight:800;font-size:.65rem;letter-spacing:.1em">FAULT</td>`;
-  return h+`</tr></tbody></table>`;
-}
+        <p id="modalRole"></p>
 
-/* ══ RENDER QUEUE ══ */
-function renderQueue(pages,steps,algo,n){
-  const th=isDark?'#020c1e':'#e8eeff';
-  let h=`<table class="data-table"><thead><tr><th class="col-lbl">RANK</th>`;
-  for(let i=0;i<steps.length;i++) h+=`<th style="color:#60a5fa;background:${th}">${i+1}</th>`;
-  h+=`</tr></thead><tbody>`;
-  for(let r=0;r<n;r++){
-    const label=algo==='FIFO'
-      ?(r===0?`Rank ${r+1} (Newest)`:r===n-1?`Rank ${r+1} (Oldest)`:`Rank ${r+1}`)
-      :(r===0?`Rank ${r+1} (MRU)`   :r===n-1?`Rank ${r+1} (LRU)`   :`Rank ${r+1}`);
-    h+=`<tr><td class="col-lbl">${label}</td>`;
-    for(const s of steps){
-      const idx=s.queue.length-1-r;
-      const val=(idx>=0&&s.queue[idx]!==undefined)?s.queue[idx]:null;
-      h+=`<td style="${val!==null?`color:${isDark?'#e2e8f0':'#0f172a'};font-weight:600`:`color:${isDark?'#1e3050':'#94a3b8'}`}">${val!==null?val:'—'}</td>`;
-    }
-    h+=`</tr>`;
-  }
-  return h+`</tbody></table>`;
-}
+    </div>
 
-/* ══ RENDER SUMMARY ══ */
-function renderSummary(pages,steps,algo,nFrames){
-  const total=pages.length,unique=new Set(pages).size;
-  const hits=steps.filter(s=>s.hit).length,faults=total-hits;
-  const hitPct=(hits/total*100).toFixed(2),faultPct=(faults/total*100).toFixed(2);
-  function card({label,value,color,sub,bdr,bg,barPct,barClr}){
-    const bar=barPct!==undefined?`<div class="mt-3 rounded-full overflow-hidden" style="height:2px;background:${isDark?'#0a1630':'#dbeafe'}"><div class="bar-fill h-full rounded-full" style="width:${barPct}%;background:${barClr}"></div></div>`:'';
-    return `<div class="rounded-2xl border p-5 flex flex-col gap-1 transition-all duration-200" style="background:${bg||(isDark?'#04091a':'#f8faff')};border-color:${bdr||(isDark?'rgba(30,58,138,.3)':'rgba(59,130,246,.15)')}">
-      <div style="font-size:.57rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:${isDark?'#2d4470':'#64748b'};font-family:'JetBrains Mono',monospace">${label}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-weight:900;font-size:clamp(1.6rem,3vw,2.1rem);color:${color||'#fff'};line-height:1">${value}</div>
-      ${sub?`<div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:${color};opacity:.7;margin-top:2px">${sub}</div>`:''}
-      ${bar}</div>`;
-  }
-  return [
-    card({label:'References',value:total,color:'#60a5fa'}),
-    card({label:'Unique Pages',value:unique,color:isDark?'#fff':'#0f172a'}),
-    card({label:'Algorithm',value:algo,color:'#60a5fa'}),
-    card({label:'Frames',value:nFrames,color:isDark?'#fff':'#0f172a'}),
-    card({label:'Hits',value:hits,color:'#34d399',sub:`${hitPct}% hit rate`,bdr:'rgba(16,185,129,.2)',bg:isDark?'rgba(16,185,129,.05)':'rgba(16,185,129,.04)',barPct:+hitPct,barClr:'#10b981'}),
-    card({label:'Faults',value:faults,color:'#f87171',sub:`${faultPct}% miss rate`,bdr:'rgba(239,68,68,.2)',bg:isDark?'rgba(239,68,68,.05)':'rgba(239,68,68,.04)',barPct:+faultPct,barClr:'#ef4444'}),
-  ].join('');
-}
+</div>
 
-/* ══ CONTROLLER ══ */
-function showError(msg){const el=document.getElementById('errMsg');el.textContent=msg;el.classList.remove('hidden');}
-function clearError(){const el=document.getElementById('errMsg');el.textContent='';el.classList.add('hidden');}
+</div><!-- /max-w-5xl -->
 
-function onBuild(){
-  clearError();
-  const raw=document.getElementById('refstr').value.trim();
-  if(!raw){showError('Reference string cannot be empty.');return;}
-  const tokens=raw.split(/[\s,]+/).filter(Boolean);
-  if(tokens.some(t=>!/^\d+$/.test(t))){showError('Reference string must contain only non-negative integers.');return;}
-  const pages=tokens.map(Number);
-  const nFrames=parseInt(document.getElementById('frames').value,10);
-  if(!nFrames||nFrames<1){showError('Number of frames must be at least 1.');return;}
-  const algo=document.querySelector('input[name="algo"]:checked').value;
-  const steps=algo==='FIFO'?runFIFO(pages,nFrames):runLRU(pages,nFrames);
-  document.getElementById('schedWrap').innerHTML=renderSchedule(pages,steps);
-  const qDesc={FIFO:'— newest page at Rank 1 → oldest page (first to be evicted) at bottom',LRU:'— Most Recently Used at Rank 1 → Least Recently Used at bottom'};
-  document.getElementById('queueSubtitle').textContent=`· ${algo} Priority`;
-  document.getElementById('queueDesc').textContent=qDesc[algo];
-  document.getElementById('queueWrap').innerHTML=renderQueue(pages,steps,algo,nFrames);
-  document.getElementById('summaryGrid').innerHTML=renderSummary(pages,steps,algo,nFrames);
-  ['tableCard','queueCard','summaryCard'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
-  document.getElementById('tableCard').scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-function onClear(){
-  document.getElementById('refstr').value='';
-  document.getElementById('frames').value='3';
-  document.getElementById('r-fifo').checked=true;
-  selectHeroAlgo('FIFO');
-  ['tableCard','queueCard','summaryCard'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-  ['schedWrap','queueWrap','summaryGrid'].forEach(id=>document.getElementById(id).innerHTML='');
-  clearError();
-}
-
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&(e.target.id==='refstr'||e.target.id==='frames'))onBuild();
-});
-
-/* ══════════════════════════════════
-   CHATBOT
-══════════════════════════════════ */
-let chatOpen=false;
-const KB={
-  fifo:[`**FIFO (First-In, First-Out)** replaces the page that has been in memory the longest — like a queue.`,`When a page fault occurs and all frames are full, FIFO evicts the page that arrived first (oldest). It uses a simple queue structure.`,`FIFO is easy to implement but can suffer from **Bélády's anomaly** — adding more frames can sometimes cause MORE faults!`],
-  lru:[`**LRU (Least Recently Used)** replaces the page that hasn't been accessed for the longest time.`,`LRU tracks the order of recent use. When eviction is needed, it removes the page at the bottom of the recency stack (the LRU page).`,`LRU performs better than FIFO in most real workloads because recently used pages are likely to be used again (locality of reference).`],
-  fault:[`A **page fault** happens when the CPU tries to access a page that is NOT currently loaded in any frame.`,`On a page fault, the OS must load the page from disk into a frame. If frames are full, a replacement algorithm decides which page to evict first.`,`Minimizing page faults is the main goal of page replacement algorithms — fewer faults means less disk I/O and better performance.`],
-  hit:[`A **page hit** occurs when the requested page is already loaded in one of the frames — no replacement needed!`,`Hits are free — no disk access required. The **hit rate** = Hits / Total References. A higher hit rate means better performance.`],
-  frames:[`**Frames** are slots in physical memory (RAM) that can hold one page each.`,`More frames generally means fewer page faults, but memory is limited. The number of frames is a key parameter in page replacement simulation.`],
-  diff:[`**FIFO vs LRU:**\n• FIFO evicts the *oldest loaded* page regardless of use.\n• LRU evicts the *least recently used* page.\n• LRU usually has fewer faults and is more practical.\n• FIFO is simpler but can suffer Bélády's anomaly.\n• LRU is closer to the optimal (OPT) algorithm.`],
-  howto:[`**How to use this tool:**\n1. Select FIFO or LRU in the hero or config section.\n2. Enter the number of frames (e.g., 3).\n3. Type a reference string (e.g., 7 0 1 2 0 3) or click 🎲 Auto.\n4. Click ▶ Build Schedule to simulate.\n5. View the Schedule Table, Queue State, and Summary below!`],
-  belady:[`**Bélády's Anomaly** is a phenomenon where increasing the number of frames causes MORE page faults with FIFO.\n\nExample: Reference string 1 2 3 4 1 2 5 1 2 3 4 5\n• With 3 frames: 9 faults\n• With 4 frames: 10 faults!\n\nLRU does NOT suffer from this anomaly.`],
-  optimal:[`The **Optimal (OPT) algorithm** replaces the page that will NOT be used for the longest time in the future.\nIt has the fewest possible page faults but requires future knowledge — so it's only theoretical, used as a benchmark.`],
-  auto:[`The **🎲 Auto Generate** button creates a random reference string based on your frame count. It generates 8–15 page references using page numbers proportional to your frame setting — great for quick testing!`],
-};
-
-function matchKB(q){
-  const l=q.toLowerCase();
-  if(/belad/i.test(l)) return KB.belady[0];
-  if(/optimal|opt\b/i.test(l)) return KB.optimal[0];
-  if(/fifo.*lru|lru.*fifo|differ|vs|compar/i.test(l)) return KB.diff[0];
-  if(/fifo/i.test(l)) return KB.fifo[Math.floor(Math.random()*KB.fifo.length)];
-  if(/lru|least/i.test(l)) return KB.lru[Math.floor(Math.random()*KB.lru.length)];
-  if(/fault|miss/i.test(l)) return KB.fault[Math.floor(Math.random()*KB.fault.length)];
-  if(/hit/i.test(l)) return KB.hit[Math.floor(Math.random()*KB.hit.length)];
-  if(/frame/i.test(l)) return KB.frames[Math.floor(Math.random()*KB.frames.length)];
-  if(/how|use|tool|work/i.test(l)) return KB.howto[0];
-  if(/auto|generat|random/i.test(l)) return KB.auto[0];
-  return null;
-}
-
-function toggleChat(){
-  chatOpen=!chatOpen;
-  document.getElementById('chatPanel').classList.toggle('hidden',!chatOpen);
-  document.getElementById('fabIcon').textContent=chatOpen?'✕':'💬';
-  document.getElementById('chatNotif').style.display='none';
-  if(chatOpen&&document.getElementById('chatMsgs').children.length===0) initChat();
-}
-
-function initChat(){
-  addMsg('bot','👋 Hi! I\'m your **Algorithm Assistant**. I can explain FIFO, LRU, page faults, frames, and help you use this tool. What would you like to know?');
-}
-
-function addMsg(role,text){
-  const msgs=document.getElementById('chatMsgs');
-  const div=document.createElement('div');
-  div.className=`msg ${role}`;
-  const formatted=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-  div.innerHTML=`
-    <div class="msg-avatar">${role==='bot'?'🤖':'👤'}</div>
-    <div class="msg-bubble">${formatted}</div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop=msgs.scrollHeight;
-}
-
-function showTyping(){
-  const msgs=document.getElementById('chatMsgs');
-  const div=document.createElement('div');
-  div.className='msg bot';div.id='typing-ind';
-  div.innerHTML=`<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="chat-typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
-  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
-}
-function removeTyping(){const t=document.getElementById('typing-ind');if(t)t.remove();}
-
-function sendChat(){
-  const inp=document.getElementById('chatInput');
-  const q=inp.value.trim();
-  if(!q)return;
-  addMsg('user',q);
-  inp.value='';
-  // hide chips after first real send
-  document.getElementById('chipWrap').style.display='none';
-  showTyping();
-  setTimeout(()=>{
-    removeTyping();
-    const answer=matchKB(q);
-    if(answer){
-      addMsg('bot',answer);
-    } else {
-      addMsg('bot',`I'm specialized in page replacement algorithms. Try asking about:\n• **FIFO** or **LRU** algorithms\n• **Page faults** and **hits**\n• **Frames** and memory management\n• **How to use this tool**\n• **Bélády's anomaly**`);
-    }
-  }, 700+Math.random()*400);
-}
-
-function chipSend(text){
-  document.getElementById('chatInput').value=text;
-  sendChat();
-}
-</script>
+<script src="mainscript.js"></script>
 </body>
 </html>
