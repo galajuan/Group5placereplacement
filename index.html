@@ -11,6 +11,7 @@
         extend: {
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Space Grotesk', 'system-ui', 'sans-serif'],
             mono: ['JetBrains Mono', 'Fira Mono', 'monospace']
           }
         }
@@ -25,15 +26,19 @@
 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" id="themeBtn">🌙</button>
 
 <!-- ══════════════════════════════════
-     HERO
+     HERO — St. John Paul II College of Davao campus backdrop
 ══════════════════════════════════ -->
 <section class="hero-section">
+  <div class="hero-photo-bg"></div>
+
   <img src="Assets/logo.jpg" alt="School Logo" class="hero-logo"
        onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex'" />
   <div id="logo-fallback" class="hero-logo-fallback" style="display:none">🎓</div>
 
+  <div class="hero-school">St. John Paul II College of Davao</div>
+
   <div class="hero-badge">
-    <span class="w-1.5 h-1.5 rounded-full bg-blue-400 dot-pulse" style="color:#60a5fa"></span>
+    <span class="w-1.5 h-1.5 rounded-full bg-violet-400 dot-pulse" style="color:#a78bfa"></span>
     OS Memory Management · Lab Activity
   </div>
 
@@ -88,14 +93,14 @@
           <label for="r-fifo"
             class="algo-pill flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl font-semibold text-sm"
             style="background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-muted);">
-            <span class="pill-badge font-mono text-[.6rem] font-bold tracking-wider bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">FIFO</span>
+            <span class="pill-badge font-mono text-[.6rem] font-bold tracking-wider bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded">FIFO</span>
             First-In, First-Out
           </label>
           <input class="algo-radio" type="radio" name="algo" id="r-lru" value="LRU" />
           <label for="r-lru"
             class="algo-pill flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl font-semibold text-sm"
             style="background:var(--bg-input);border:1px solid var(--border-input);color:var(--text-muted);">
-            <span class="pill-badge font-mono text-[.6rem] font-bold tracking-wider bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">LRU</span>
+            <span class="pill-badge font-mono text-[.6rem] font-bold tracking-wider bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded">LRU</span>
             Least Recently Used
           </label>
         </div>
@@ -104,7 +109,7 @@
       <!-- Frames -->
       <div>
         <div class="text-[.65rem] font-bold uppercase tracking-widest mb-2.5" style="color:var(--text-label)">
-          Number of Frames <span class="text-blue-400">*</span>
+          Number of Frames <span class="text-violet-400">*</span>
         </div>
         <input class="field-input" type="number" id="frames" value="3" min="1" max="20" />
       </div>
@@ -113,7 +118,7 @@
       <div>
         <div class="flex items-center justify-between mb-2.5">
           <div class="text-[.65rem] font-bold uppercase tracking-widest" style="color:var(--text-label)">
-            Reference String <span class="text-blue-400">*</span>
+            Reference String <span class="text-violet-400">*</span>
           </div>
           <span class="mode-badge mode-none" id="modeBadge">Enter a reference string</span>
         </div>
@@ -130,7 +135,7 @@
 </button>
         </div>
         <p class="mt-1.5 text-[.67rem]" style="color:var(--text-empty)">
-          Numbers (e.g. 7 0 1 2) or Letters (e.g. A B C A) — not both · spaces or commas accepted
+          Just start typing — spaces are added automatically between each number or letter
         </p>
       </div>
 
@@ -156,17 +161,17 @@
     class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
 
     <div
-        class="w-[95%] max-w-md rounded-2xl p-6 shadow-2xl"
+        class="panel-card w-[95%] max-w-md rounded-2xl p-6 shadow-2xl"
         style="
         background:var(--bg-card);
         border:1px solid var(--border-table);
         ">
 
-        <h2 class="text-xl font-bold mb-5">
+        <h2 class="text-xl font-bold mb-5 font-display">
             🎲 Auto Generate
         </h2>
 
-        <!-- TYPE -->
+        <!-- TYPE — always-visible segmented toggle, pick before you generate -->
 
         <div class="mb-5">
 
@@ -175,29 +180,25 @@
                 Reference Type
             </div>
 
-            <div class="flex gap-5">
+            <div class="gen-type-toggle">
 
-                <label class="flex items-center gap-2 cursor-pointer">
-
-                    <input
-                        id="gen-type-numbers"
-                        type="radio"
-                        name="genType"
-                        checked>
-
-                    Numbers
-
+                <input
+                    class="gen-type-radio"
+                    id="gen-type-numbers"
+                    type="radio"
+                    name="genType"
+                    checked>
+                <label for="gen-type-numbers" class="gen-type-option">
+                    <span class="gen-type-icon">#</span> Numbers
                 </label>
 
-                <label class="flex items-center gap-2 cursor-pointer">
-
-                    <input
-                        id="gen-type-letters"
-                        type="radio"
-                        name="genType">
-
-                    Letters
-
+                <input
+                    class="gen-type-radio"
+                    id="gen-type-letters"
+                    type="radio"
+                    name="genType">
+                <label for="gen-type-letters" class="gen-type-option">
+                    <span class="gen-type-icon">A</span> Letters
                 </label>
 
             </div>
@@ -208,7 +209,7 @@
 
         <div class="mb-5">
 
-            <label class="text-xs uppercase tracking-widest">
+            <label class="text-xs uppercase tracking-widest" style="color:var(--text-label)">
 
                 Number of References
 
@@ -230,7 +231,7 @@
             id="number-options"
             class="mb-5">
 
-            <label class="text-xs uppercase tracking-widest">
+            <label class="text-xs uppercase tracking-widest" style="color:var(--text-label)">
 
                 Maximum Number
 
@@ -252,7 +253,7 @@
             id="letter-options"
             class="mb-5 hidden">
 
-            <label class="text-xs uppercase tracking-widest">
+            <label class="text-xs uppercase tracking-widest" style="color:var(--text-label)">
 
                 Number of Letters (A...)
 
@@ -319,7 +320,7 @@
       <div class="eyebrow-icon">⇅</div>
       <span class="eyebrow-text">
         Queue State
-        <span id="queueSubtitle" class="ml-1" style="color:rgba(59,130,246,.5)"></span>
+        <span id="queueSubtitle" class="ml-1" style="color:rgba(139,92,246,.55)"></span>
       </span>
     </div>
     <p class="text-[.68rem] mb-4 ml-10" id="queueDesc" style="color:var(--text-empty)"></p>
@@ -354,7 +355,7 @@
       <div class="dev-name"
            data-name="Dewi Flores"
            data-role="Core Functionality"
-           data-img="images/dewi.jpg">
+           data-img="Assets/logo.jpg">
         Dewi Flores
 
         <div class="dev-hover">
@@ -435,7 +436,6 @@
       </div>
     </div>
 
-
   </div>
 
   <div class="footer-line">
@@ -462,6 +462,9 @@
 
 </div><!-- /max-w-5xl -->
 
-<script src="mainscript.js"></script>
+<script src="js/fifo.js"></script>
+<script src="js/lru.js"></script>
+<script src="js/autogenerate.js"></script>
+<script src="js/mainscript.js"></script>
 </body>
 </html>
