@@ -1,7 +1,4 @@
-/* ════════════════════════════════════════════════════════════════
-   LRU.JS — Least Recently Used page replacement algorithm
-   Evicts the page that has gone the longest without being accessed.
-   ════════════════════════════════════════════════════════════════ */
+
 
 function runLRU(pages, n) {
   const frames = Array(n).fill(null);
