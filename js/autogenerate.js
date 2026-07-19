@@ -1,9 +1,4 @@
-/* ════════════════════════════════════════════════════════════════
-   AUTOGENERATE.JS — random reference string generator panel
-   Numbers/Letters selection is a visible segmented toggle, always on
-   screen the moment the panel opens — no extra clicks needed before
-   pressing "Generate".
-   ════════════════════════════════════════════════════════════════ */
+
 
 function updateGeneratorOptions() {
     const letters = document.getElementById("gen-type-letters").checked;
