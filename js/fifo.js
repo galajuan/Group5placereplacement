@@ -1,7 +1,4 @@
-/* ════════════════════════════════════════════════════════════════
-   FIFO.JS — First-In, First-Out page replacement algorithm
-   Evicts the page that has been in memory the longest (queue order).
-   ════════════════════════════════════════════════════════════════ */
+
 
 function runFIFO(pages, n) {
   const frames = Array(n).fill(null);
