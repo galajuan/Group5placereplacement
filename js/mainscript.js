@@ -6,7 +6,7 @@ function toggleTheme() {
   document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
 }
 
-/* ══ HERO ALGO SYNC ═════════════════════════════════════════════ */
+
 function selectHeroAlgo(algo) {
   document.getElementById('hero-fifo').classList.toggle('active', algo === 'FIFO');
   document.getElementById('hero-lru').classList.toggle('active',  algo === 'LRU');
@@ -41,12 +41,6 @@ function updateModeBadge(mode) {
   }
 }
 
-/* ══ AUTO-SPACE FORMATTER ═══════════════════════════════════════
-   Every digit / letter is treated as its own reference token, so the
-   user can just type continuously (e.g. "701203") and a single space
-   is automatically inserted between each token ("7 0 1 2 0 3") —
-   no need to hit the spacebar or type commas by hand.
-   ════════════════════════════════════════════════════════════════ */
 function autoSpaceFormat(input) {
   const cursorPos = input.selectionStart;
   const rawBefore = input.value.slice(0, cursorPos);
